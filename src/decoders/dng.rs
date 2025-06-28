@@ -34,7 +34,9 @@ impl<'a> Decoder for DngDecoder<'a> {
       };
       !subsampled && (compression == 7 || compression == 1 || compression == 0x884c)
     }).collect::<Vec<&TiffIFD>>();
-    let raw = ifds[0];
+    let raw = *ifds.first().ok_or_else(|| {
+      "DNG: Could not find a supported main image IFD. This can happen with unsupported DNGs.".to_string()
+  })?;
     let width = fetch_tag!(raw, Tag::ImageWidth).get_usize(0);
     let height = fetch_tag!(raw, Tag::ImageLength).get_usize(0);
     let cpp = fetch_tag!(raw, Tag::SamplesPerPixel).get_usize(0);
